@@ -18,9 +18,9 @@ Author_Statistics = namedtuple("File_Statistics", "sloc comment_lines files")
 def find_authors(file) -> List[str]:
     with open(file, 'r+') as file:
         string_contents = str(file.read())
-        author_tag = re.search('/\*\*[^/]*@author ([^\*/]*)[^/]*\*/', string_contents)
+        author_tag = re.search(r'/\*\*([^\*]|\*[^/])*@author ([^\n]*)([^\*]|\*[^/])*\*/', string_contents, re.M)
         if author_tag:
-            return author_tag.group(1)\
+            return author_tag.group(2)\
                 .replace(" ", "")\
                 .replace("\n", "")\
                 .replace("\\\\n", "")\
@@ -38,6 +38,8 @@ def generate_author_summary(dir_path: str) -> Tuple[Dict[str, File_Statistics], 
         file_statistics = pygount.SourceAnalysis.from_file(file, "project_analysis")
 
         files[file] = File_Statistics(authors_list, file_statistics.code_count, file_statistics.documentation_count)
+        if not authors_list:
+            print(f"file contains no @author tag: {file}")
         for author in authors_list:
             if author not in authors:
                 authors[author] = \
@@ -95,12 +97,13 @@ if __name__ == '__main__':
         print(f" - comment_lines: {entry.comment_lines}")
         print(f" - files: {entry.files}")
 
-    with open(args.csv_output, 'w') as csv_file:
-        csv_file.write("author, total, sloc, comment_lines, files\n")
-        for author in authors:
-            entry = authors[author]
-            csv_file.write(f"{author}, "
-                           f"{entry.sloc + entry.comment_lines}, {entry.sloc}, {entry.comment_lines}, "
-                           f"\"{entry.files}\"\n"
-                           )
+    if args.csv_output:
+        with open(args.csv_output, 'w') as csv_file:
+            csv_file.write("author, total, sloc, comment_lines, files\n")
+            for author in authors:
+                entry = authors[author]
+                csv_file.write(f"{author}, "
+                               f"{entry.sloc + entry.comment_lines}, {entry.sloc}, {entry.comment_lines}, "
+                               f"\"{entry.files}\"\n"
+                               )
 
