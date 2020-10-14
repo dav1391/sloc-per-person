@@ -12,7 +12,7 @@ import argparse
 
 
 File_Statistics = namedtuple("File_Statistics", "authors sloc comment_lines")
-Author_Statistics = namedtuple("File_Statistics", "sloc comment_lines files")
+Author_Statistics = namedtuple("Author_Statistics", "sloc comment_lines files")
 
 
 def find_authors(file) -> List[str]:
